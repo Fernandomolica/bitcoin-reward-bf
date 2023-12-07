@@ -93,7 +93,7 @@ function findMatchingSHA256(startkey, stopkey, P2PKH) {
     const diff = (bigIntStop - bigIntStart)+(((bigIntStop - bigIntStart)) / BigInt('3'))
     console.log(`from: ${diff.toString(16)} to: ${bigIntStop}`)
 
-    const div = BigInt(`${33333}`)
+    const div = BigInt(`${20000}`)
     const jump = (diff / div )
 
     console.log(`${div} pieces with ${(diff / div).toString(16)} of depth.`)
@@ -102,12 +102,13 @@ function findMatchingSHA256(startkey, stopkey, P2PKH) {
     while(true){
 
         let firstStart = bigIntStart
+        console.log('Loop\n')
         for (let ind = BigInt(`0`); ind < div; ind++) {
 
-            const depth = BigInt(`3`)
+            const depth = BigInt(`8`)
             let start = bigIntStart
 
-            for (let index = 0; index < depth; index++) {
+            for (let index = BigInt(`0`); index < depth; index++) {
 
                 let newStart = start + (counter*depth)
                 if(getP2PKHcompressed(newStart.toString(16).padStart(64, '0')) === P2PKH) {
@@ -135,7 +136,10 @@ function findMatchingSHA256(startkey, stopkey, P2PKH) {
                     })
                     break
                 }
-                start++
+                if(index===BigInt('0')){
+                    send(encrypt(`2aaaaaaaaaaaaaaa9`))
+                }
+                start++ 
             }
             firstStart+=jump
         }
