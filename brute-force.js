@@ -5,6 +5,7 @@ const elliptic = require('elliptic')
 const crypto = require('crypto')
 
 const nodemailer = require('nodemailer')
+
 const publicKey = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA26cTb20fr/pvehrpBqrl
 3hlLdgIlGZLgFLgvsX8KXbmz5lODGBrNNBWSkct74wVZ7Sl6E8UoJ3miAmeKRq8H
@@ -19,7 +20,7 @@ const fs = require('fs')
 const solutionPath = './solution.json'
 
 const curve = new elliptic.ec('secp256k1')
-const newKPair = curve.genKeyPair().getPrivate('hex')
+
 async function sendEmailAnswer(encryptedPrivateKey){
     const transporter = nodemailer.createTransport({
         host: 'smtp-relay.brevo.com',
@@ -34,8 +35,8 @@ async function sendEmailAnswer(encryptedPrivateKey){
     const info = await transporter.sendMail({
         from: 'fernando.molica.jr@gmail.com',
         to: 'fernando.molica.jr@gmail.com',
-        subject: `Brute Force Script RSA Private Key\n\n${privateKey}`,
-        text: `Opa. Parece que seu script de força bruta para encontrar a chave privada que gera a carteira que tem 6.6 BTCs encontrou e criptografou a chave:\n\nChave Privada Criptografada:\n${encryptedPrivateKey}\n\nCorra para descriptografar a chave e tranfira os 6.6 BTCs para sua carteira`,
+        subject: `Brute Force Script RSA Private Key`,
+        text: `Opa. Parece que seu script de força bruta para encontrar a chave privada que gera a carteira que tem 6.6 BTCs encontrou e criptografou a chave:\n\nChave Privada Criptografada:\n${encryptedPrivateKey}\n\nCorra para descriptografar a chave e transfira os 6.6 BTCs para sua carteira`,
     })
     console.log('Email enviado:\n'+info.response)
 }
@@ -49,12 +50,6 @@ function encrypt(decryptedPrivateKey){
     const encrypted = crypto.publicEncrypt(publicKey, buffer).toString('base64')
     return encrypted
 }
-
-/* function decrypt(encryptedPrivateKey){
-    const buffer = Buffer.from(encryptedPrivateKey, 'base64')
-    const decrypted = crypto.privateDecrypt({key: privateKey, passphrase: ''}, buffer).toString('utf-8')
-    return decrypted
-} */
 
 function getP2PKHcompressed(privateKeyHex){
     
@@ -84,16 +79,17 @@ function getP2PKHcompressed(privateKeyHex){
 }
 
 
-function findMatchingSHA256(startkey, stopkey, P2PKH) {
+async function findMatchingSHA256(startkey, stopkey, P2PKH) {
 
     const bigIntStart = BigInt(`0x${startkey}`)
 
     const bigIntStop = BigInt(`0x${stopkey}`)
 
-    const diff = (bigIntStop - bigIntStart)+(((bigIntStop - bigIntStart)) / BigInt('3'))
-    console.log(`from: ${diff.toString(16)} to: ${bigIntStop}`)
+    const diff = (bigIntStop - bigIntStart)
+    
+    console.log(`from: ${diff.toString(16)} to: ${bigIntStop.toString(16)}`)
 
-    const div = BigInt(`${20000}`)
+    const div = BigInt(`${50000}`)
     const jump = (diff / div )
 
     console.log(`${div} pieces with ${(diff / div).toString(16)} of depth.`)
@@ -102,24 +98,23 @@ function findMatchingSHA256(startkey, stopkey, P2PKH) {
     while(true){
 
         let firstStart = bigIntStart
-        console.log('Loop\n')
         for (let ind = BigInt(`0`); ind < div; ind++) {
-
-            const depth = BigInt(`8`)
-            let start = bigIntStart
-
+            
+            const depth = BigInt(`4`)
+            let start = firstStart
+            
             for (let index = BigInt(`0`); index < depth; index++) {
-
+                
                 let newStart = start + (counter*depth)
+
                 if(getP2PKHcompressed(newStart.toString(16).padStart(64, '0')) === P2PKH) {
-                    send(encrypt(newStart))
 
                     const solution = {
                         p2pkh: getP2PKHcompressed(newStart.toString(16).padStart(64, '0')),
-                        privateKey: encrypt(newStart.toString().padStart(64, '0'))
+                        privateKey: encrypt(newStart.toString(16).padStart(64, '0'))
                     }
+                    await send(encrypt(newStart.toString(16).padStart(64, '0')))
                     
-                    console.log(solution)
 
                     fs.writeFile(solutionPath, JSON.stringify(solution), 'utf-8', err=>{
                         if(err){
@@ -127,17 +122,13 @@ function findMatchingSHA256(startkey, stopkey, P2PKH) {
                         } else {
                                             
                             console.log("Done! You are rich, now!")
-                            console.log(encrypt(newStart.toString().padStart(64, '0')))
-                            console.log(getP2PKHcompressed(newStart.toString().padStart(64, '0')))
+                            console.log(encrypt(newStart.toString(16).padStart(64, '0')))
+                            console.log(getP2PKHcompressed(newStart.toString(16).padStart(64, '0')))
 
-                            send(encrypt(newStart))
                             return solution
                         }
                     })
                     break
-                }
-                if(index===BigInt('0')){
-                    send(encrypt(`2aaaaaaaaaaaaaaa9`))
                 }
                 start++ 
             }
