@@ -1,0 +1,11 @@
+{
+  "name": "brute-force",
+  "version": "1.0.0",
+  "main": "index.html",
+  "license": "MIT",
+  "dependencies": {
+    "bs58": "^5.0.0",
+    "crypto-js": "^4.2.0",
+    "elliptic": "^6.5.4"
+  }
+}
