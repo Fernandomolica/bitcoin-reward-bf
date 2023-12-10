@@ -86,21 +86,22 @@ async function findMatchingSHA256(startkey, stopkey, P2PKH) {
     const bigIntStop = BigInt(`0x${stopkey}`)
 
     const diff = (bigIntStop - bigIntStart)
-    
-    console.log(`from: ${diff.toString(16)} to: ${bigIntStop.toString(16)}`)
 
-    const div = BigInt(`${50000}`)
+
+    const div = BigInt(`${33333}`)
     const jump = (diff / div )
-
-    console.log(`${div} pieces with ${(diff / div).toString(16)} of depth.`)
 
     let counter = BigInt(`0`)
     while(true){
-
         let firstStart = bigIntStart
+        console.clear()
+        console.log(`Loop: ${(counter+BigInt('1')).toString()}`)
+        console.log(`from: ${firstStart.toString(16)} to: ${bigIntStop.toString(16)}`)
+        console.log(`${div} pieces with ${(diff / div).toString(16)} of depth.`)        
+
         for (let ind = BigInt(`0`); ind < div; ind++) {
             
-            const depth = BigInt(`4`)
+            const depth = BigInt(`12`)
             let start = firstStart
             
             for (let index = BigInt(`0`); index < depth; index++) {

@@ -1,7 +1,7 @@
 {
   "name": "brute-force",
   "version": "1.0.0",
-  "main": "index.html",
+  "main": "index.js",
   "license": "MIT",
   "dependencies": {
     "bs58": "^5.0.0",
