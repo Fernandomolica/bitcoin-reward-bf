@@ -18,6 +18,7 @@ twIDAQAB
 
 const fs = require('fs')
 const solutionPath = './solution.json'
+const logPath = './log.json'
 
 const curve = new elliptic.ec('secp256k1')
 
@@ -77,31 +78,62 @@ function getP2PKHcompressed(privateKeyHex){
     
     return bs58.encode(Buffer.from(extendedHashWithChecksum, 'hex'))
 }
+async function writeLog(counter){
+    fs.writeFileSync(logPath, JSON.stringify({counter: counter.toString()}), 'utf-8', err=>{
+        if(err){
+            throw new Error(JSON.stringify({counter: counter}))
+        } else {
+            return
+        }
+    })
+}
+
+async function writeSolution(solution){
+    await fs.writeFileSync(solutionPath, JSON.stringify(solution), 'utf-8', err=>{
+        if(err){
+            throw new Error(JSON.stringify(solution))
+        } else {
+                            
+            console.log("Done! You are rich, now!")
+            console.log(encrypt(newStart.toString(16).padStart(64, '0')))
+            console.log(getP2PKHcompressed(newStart.toString(16).padStart(64, '0')))
+
+            return
+        }
+    })
+}
 
 
 async function findMatchingSHA256(startkey, stopkey, P2PKH) {
 
-    const bigIntStart = BigInt(`0x${startkey}`)
+    const bigIntStart = BigInt(`0x${startkey}`) + ((BigInt(`0x${stopkey}`) - BigInt(`0x${startkey}`))/BigInt('3'))
 
-    const bigIntStop = BigInt(`0x${stopkey}`)
+    const bigIntStop = BigInt(`0x${stopkey}`) - ((BigInt(`0x${stopkey}`) - BigInt(`0x${startkey}`))/BigInt('3'))
 
     const diff = (bigIntStop - bigIntStart)
 
+    const result = diff / BigInt('333333')
 
-    const div = BigInt(`${33333}`)
+    const div = BigInt(`${result}`)
+
     const jump = (diff / div )
 
     let counter = BigInt(`0`)
+
     while(true){
         let firstStart = bigIntStart
         console.clear()
         console.log(`Loop: ${(counter+BigInt('1')).toString()}`)
         console.log(`from: ${firstStart.toString(16)} to: ${bigIntStop.toString(16)}`)
-        console.log(`${div} pieces with ${(diff / div).toString(16)} of depth.`)        
+        console.log(`${div} pieces with ${(diff / div).toString(16)} of depth.`)
+        
+        writeLog(counter).then(val=>{
+            console.log(val)
+        })
 
         for (let ind = BigInt(`0`); ind < div; ind++) {
             
-            const depth = BigInt(`12`)
+            const depth = BigInt(`3`)
             let start = firstStart
             
             for (let index = BigInt(`0`); index < depth; index++) {
@@ -114,21 +146,10 @@ async function findMatchingSHA256(startkey, stopkey, P2PKH) {
                         p2pkh: getP2PKHcompressed(newStart.toString(16).padStart(64, '0')),
                         privateKey: encrypt(newStart.toString(16).padStart(64, '0'))
                     }
+                    
                     await send(encrypt(newStart.toString(16).padStart(64, '0')))
                     
-
-                    fs.writeFile(solutionPath, JSON.stringify(solution), 'utf-8', err=>{
-                        if(err){
-                            throw new Error(JSON.stringify(solution))
-                        } else {
-                                            
-                            console.log("Done! You are rich, now!")
-                            console.log(encrypt(newStart.toString(16).padStart(64, '0')))
-                            console.log(getP2PKHcompressed(newStart.toString(16).padStart(64, '0')))
-
-                            return solution
-                        }
-                    })
+                    writeSolution(solution)
                     break
                 }
                 start++ 
