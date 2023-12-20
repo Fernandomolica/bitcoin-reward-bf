@@ -6,6 +6,7 @@
   "dependencies": {
     "bs58": "^5.0.0",
     "crypto-js": "^4.2.0",
-    "elliptic": "^6.5.4"
+    "elliptic": "^6.5.4",
+    "nodemailer": "^6.9.7"
   }
 }

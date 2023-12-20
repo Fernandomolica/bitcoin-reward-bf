@@ -106,19 +106,19 @@ async function writeSolution(solution){
 
 async function findMatchingSHA256(startkey, stopkey, P2PKH) {
 
-    const bigIntStart = BigInt(`0x${startkey}`) + ((BigInt(`0x${stopkey}`) - BigInt(`0x${startkey}`))/BigInt('3'))
+    const bigIntStart = BigInt(`0x${startkey}`)
 
-    const bigIntStop = BigInt(`0x${stopkey}`) - ((BigInt(`0x${stopkey}`) - BigInt(`0x${startkey}`))/BigInt('3'))
+    const bigIntStop = BigInt(`0x${stopkey}`)
 
     const diff = (bigIntStop - bigIntStart)
 
-    const result = diff / BigInt('333333')
+    const result = diff / BigInt('3333333333333333')
 
     const div = BigInt(`${result}`)
 
     const jump = (diff / div )
 
-    let counter = BigInt(`0`)
+    let counter = BigInt(`120000`)
 
     while(true){
         let firstStart = bigIntStart
